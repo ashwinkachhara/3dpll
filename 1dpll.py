@@ -27,22 +27,22 @@ def empty_clause(clauses, assignments):# Returns False if empty clause is found
 				return False
 	return True
 
-def find_unit_clauses(clauses):
-	unit_clauses = []
-	for clause in clauses:
-		if len(clause) == 1:
-			unit_clauses.append(clause)
-	return unit_clauses
-
 #~ def find_unit_clauses(clauses):
-	#~ unit_dict = {}
+	#~ unit_clauses = []
 	#~ for clause in clauses:
 		#~ if len(clause) == 1:
-			#~ unit_dict[clause[0]]=1
-	#~ unit_clauses=[]
-	#~ for unit in unit_dict:
-		#~ unit_clauses.append(unit)		
+			#~ unit_clauses.append(clause)
 	#~ return unit_clauses
+
+def find_unit_clauses(clauses):
+	unit_dict = {}
+	for clause in clauses:
+		if len(clause) == 1:
+			unit_dict[clause[0]]=1
+	unit_clauses=[]
+	for unit in unit_dict:
+		unit_clauses.append(unit)		
+	return unit_clauses
 
 def unit_propagate(old_clauses, assigned):# assigned is a length 1 dict -> var:value
 	assigned_var = assigned.keys()[0]
@@ -110,15 +110,24 @@ def dpll(clauses,assignments):
 		return False
 	unit_clauses = find_unit_clauses(clauses)
 	print 'Unit-clauses : ',unit_clauses
+	
 	for unit_clause in unit_clauses:
 		#~ print 'unit-clauses',unit_clauses
 		#~ print 'unit-clause',unit_clause
-		assigned = {abs(unit_clause[0]): (unit_clause[0]>0)}
-		clauses = unit_propagate(clauses,assigned)
-		for clause in clauses:
-			if not clause: # Check for an Empty Clause, as Empty Clause will imply that No literals of the clause were able to make clause Satisfiable\True
-				print 'Empty Clause, Unsat'
+		asgn_var = abs(unit_clause)
+		asgn_val = unit_clause>0
+		assigned = {asgn_var: asgn_val}
+		if(asgn_var in assignments.keys()):
+			if(assignments[asgn_var] != asgn_val):
+				print 'UNSAT, Conflicting Unit Clauses'
 				return False
+		else:
+			assignments[asgn_var] = asgn_val
+		clauses = unit_propagate(clauses,assigned)
+		#~ for clause in clauses:
+			#~ if not clause: # Check for an Empty Clause, as Empty Clause will imply that No literals of the clause were able to make clause Satisfiable\True
+				#~ print 'Empty Clause, Unsat'
+				#~ return False
 	print "Unit Propogated : ", clauses
 	pure_literals = find_pure_literals(clauses)
 	for pure_literal in pure_literals:
