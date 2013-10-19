@@ -26,12 +26,43 @@ def empty_clause(clauses, assignments):
 				return False
 	return True
 
-def find_unit_clauses(clauses, assignments):
+def find_unit_clauses(clauses):
 	unit_clauses = []
 	for clause in clauses:
 		if len(clause) == 1:
 			unit_clauses.append(clause)
 	return unit_clauses
+
+def unit_propagate(clauses, assigned):# assigned is a length 1 dict -> var:value
+	assigned_var = assigned.keys()[0]
+	#~ need_to_reduce = [clause for clause in clauses if (assigned_var in clause) or (-assigned_var in clause)]
+	reduced_clauses = []
+	for clause in clauses:
+		#~ print clause
+		if (assigned_var not in clause) and (-assigned_var not in clause):
+			reduced_clauses.append(clause)
+			continue
+		for literal in clause:
+			#~ print abs(literal), assigned_var
+			if abs(literal) == assigned_var:
+				if (bool(assigned[assigned_var]) == bool(literal>0)):
+					break
+				else:
+					del clause[clause.index(literal)]
+					#~ print 'Reduced',clause
+					reduced_clauses.append(clause)
+					break
+	return reduced_clauses
+
+def unit_test(clauses, assignments):
+	clauses = unit_propagate(clauses,assignments)
+	print clauses
+	unit_clauses = find_unit_clauses(clauses)
+	for unit_clause in unit_clauses:
+		assigned = {abs(unit_clause[0]): (unit_clause[0]>0)}
+		clauses = unit_propagate(clauses,assigned)
+		print clauses
+	
 
 f = open('data.txt')
 fLines = f.readlines()
@@ -43,15 +74,18 @@ num_clauses = int(l1[3])
 all_clauses = []
 for line in fLines[1:]:
 	all_clauses.append([int(i) for i in line.split(' ')[:-1]])
-print all_clauses
+#~ print all_clauses
 
-assignments = {1:True}
+assignments = {2:True}
 
 #~ print check_consistent(all_clauses,assignments)
 #~ print empty_clause(all_clauses,assignments)
-unit_clauses = find_unit_clauses(all_clauses, assignments)
-if len(unit_clauses) == 0:
-	print 'No Unit Clauses'
-else:
-	print 'Unit Clause(s)', unit_clauses
+#~ unit_clauses = find_unit_clauses(all_clauses)
+#~ if len(unit_clauses) == 0:
+	#~ print 'No Unit Clauses'
+#~ else:
+	#~ print 'Unit Clause(s)', unit_clauses
+
+#~ unit_propagate(all_clauses,assignments)
+unit_test(all_clauses, assignments)
 			
