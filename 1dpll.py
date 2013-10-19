@@ -132,6 +132,7 @@ def dpll(clauses,assignments):
 	pure_literals = find_pure_literals(clauses)
 	for pure_literal in pure_literals:
 		assigned = {abs(pure_literal): (pure_literal>0)}
+		assignments[abs(pure_literal)] = (pure_literal>0)
 		clauses = unit_propagate(clauses,assigned)
 	print "Pure Literal Propogated : ", clauses
 	
