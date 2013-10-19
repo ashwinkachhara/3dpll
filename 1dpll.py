@@ -26,7 +26,12 @@ def empty_clause(clauses, assignments):
 				return False
 	return True
 
-
+def find_unit_clauses(clauses, assignments):
+	unit_clauses = []
+	for clause in clauses:
+		if len(clause) == 1:
+			unit_clauses.append(clause)
+	return unit_clauses
 
 f = open('data.txt')
 fLines = f.readlines()
@@ -40,8 +45,13 @@ for line in fLines[1:]:
 	all_clauses.append([int(i) for i in line.split(' ')[:-1]])
 print all_clauses
 
-assignments = {}
+assignments = {1:True}
 
 #~ print check_consistent(all_clauses,assignments)
-print empty_clause(all_clauses,assignments)
+#~ print empty_clause(all_clauses,assignments)
+unit_clauses = find_unit_clauses(all_clauses, assignments)
+if len(unit_clauses) == 0:
+	print 'No Unit Clauses'
+else:
+	print 'Unit Clause(s)', unit_clauses
 			
