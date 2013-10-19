@@ -101,12 +101,15 @@ def pure_literal_test(clauses):
 		clauses = unit_propagate(clauses,assigned)
 		print clauses
 					
-def dpll(clauses,assignments):
+def dpll(old_clauses,old_assignments,i):
+	clauses = deepcopy(old_clauses)
+	assignments = deepcopy(old_assignments)
+	print "** ", i
 	if(check_consistent(clauses, assignments)):
 		print 'Done', assignments
 		return True
 	elif not empty_clause(clauses, assignments):
-		print 'Empty Clause'
+		#~ print 'Empty Clause',assignments
 		return False
 	unit_clauses = find_unit_clauses(clauses)
 	print 'Unit-clauses : ',unit_clauses
@@ -135,6 +138,21 @@ def dpll(clauses,assignments):
 		assignments[abs(pure_literal)] = (pure_literal>0)
 		clauses = unit_propagate(clauses,assigned)
 	print "Pure Literal Propogated : ", clauses
+	#Choose New Literal
+	if(clauses == []):
+		print "ANS : ",assignments
+		return True
+	elif(clauses[0] == []):
+		return False
+	else:
+		I= clauses[0][0];
+	#~ print (clauses+[[I]])
+	if(dpll(clauses+[[I]],assignments,i+1)):
+		return True
+	elif(dpll(clauses+[[-I]],assignments,i+1)):
+		return True
+	else:
+		return False
 	
 
 f = open('data.txt')
@@ -163,4 +181,4 @@ assignments = {2:True}
 #~ unit_test(all_clauses, assignments)
 #~ find_pure_literals(all_clauses);
 #~ pure_literal_test(all_clauses)
-dpll(all_clauses,{})
+dpll(all_clauses,{},0)
