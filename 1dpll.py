@@ -68,12 +68,12 @@ def unit_propagate(old_clauses, assigned):# assigned is a length 1 dict -> var:v
 
 def unit_test(clauses, assignments):
 	clauses = unit_propagate(clauses,assignments)
-	print clauses
+	#~ print clauses
 	unit_clauses = find_unit_clauses(clauses)
 	for unit_clause in unit_clauses:
 		assigned = {abs(unit_clause[0]): (unit_clause[0]>0)}
 		clauses = unit_propagate(clauses,assigned)
-		print clauses
+		#~ print clauses
 		
 		
 def find_pure_literals(clauses):# all_literal = -1 : Not a Pure Literal, 0 : Complemented Pure Literal, 1 : Pure Literal
@@ -99,12 +99,12 @@ def pure_literal_test(clauses):
 	for pure_literal in pure_literals:
 		assigned = {abs(pure_literal): (pure_literal>0)}
 		clauses = unit_propagate(clauses,assigned)
-		print clauses
+		#~ print clauses
 					
 def dpll(old_clauses,old_assignments,i):
 	clauses = deepcopy(old_clauses)
 	assignments = deepcopy(old_assignments)
-	print "** ", i
+	#~ print "** ", i
 	if(check_consistent(clauses, assignments)):
 		print 'Done', assignments
 		return True
@@ -112,7 +112,7 @@ def dpll(old_clauses,old_assignments,i):
 		#~ print 'Empty Clause',assignments
 		return False
 	unit_clauses = find_unit_clauses(clauses)
-	print 'Unit-clauses : ',unit_clauses
+	#~ print 'Unit-clauses : ',unit_clauses
 	
 	for unit_clause in unit_clauses:
 		#~ print 'unit-clauses',unit_clauses
@@ -122,7 +122,7 @@ def dpll(old_clauses,old_assignments,i):
 		assigned = {asgn_var: asgn_val}
 		if(asgn_var in assignments.keys()):
 			if(assignments[asgn_var] != asgn_val):
-				print 'UNSAT, Conflicting Unit Clauses'
+				#~ print 'UNSAT, Conflicting Unit Clauses'
 				return False
 		else:
 			assignments[asgn_var] = asgn_val
@@ -131,13 +131,13 @@ def dpll(old_clauses,old_assignments,i):
 			#~ if not clause: # Check for an Empty Clause, as Empty Clause will imply that No literals of the clause were able to make clause Satisfiable\True
 				#~ print 'Empty Clause, Unsat'
 				#~ return False
-	print "Unit Propogated : ", clauses
+	#~ print "Unit Propogated : ", clauses
 	pure_literals = find_pure_literals(clauses)
 	for pure_literal in pure_literals:
 		assigned = {abs(pure_literal): (pure_literal>0)}
 		assignments[abs(pure_literal)] = (pure_literal>0)
 		clauses = unit_propagate(clauses,assigned)
-	print "Pure Literal Propogated : ", clauses
+	#~ print "Pure Literal Propogated : ", clauses
 	#Choose New Literal
 	if(clauses == []):
 		print "ANS : ",assignments
@@ -155,7 +155,7 @@ def dpll(old_clauses,old_assignments,i):
 		return False
 	
 
-f = open('data.txt')
+f = open('sudoku.cnf')
 fLines = f.readlines()
 l1 = fLines[0].split(' ')
 
@@ -165,7 +165,7 @@ num_clauses = int(l1[3])
 all_clauses = []
 for line in fLines[1:]:
 	all_clauses.append([int(i) for i in line.split(' ')[:-1]])
-print all_clauses
+#~ print all_clauses
 
 assignments = {2:True}
 
