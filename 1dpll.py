@@ -2,7 +2,7 @@ from copy import deepcopy
 import sys
 
 # Make this true for Debug Mode, which prints value on every step
-DEBUG_Mode = True
+DEBUG_Mode = False
 
 def check_consistent(clauses, assignments):
 	# Check the consistency of clauses based on current (possibly partial) assignment of variables
@@ -162,6 +162,8 @@ def dpll(old_clauses,old_assignments,recursion_depth):
 		return False
 	else:
 		I= clauses[0][0];
+		if DEBUG_Mode:
+			print 'Choosing new literal: ',I
 	#~ print (clauses+[[I]])
 	if(dpll(clauses+[[I]],assignments,recursion_depth+1)):
 		return True
