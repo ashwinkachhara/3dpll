@@ -1,6 +1,11 @@
 from copy import deepcopy
+import sys
+
+# Make this true for Debug Mode, which prints value on every step
+DEBUG_Mode = True
 
 def check_consistent(clauses, assignments):
+	# Check the consistency of clauses based on current (possibly partial) assignment of variables
 	for clause in clauses:
 		asgn_vars = [i for i in clause if abs(i) in assignments.keys()]
 		clause_result = False
@@ -10,10 +15,13 @@ def check_consistent(clauses, assignments):
 				#~ print "Here"
 				break
 		if not clause_result:
+			# If any clause evaluates to False, we return False (i.e. the problem is UNSAT)
 			return False
 	return True
 
-def empty_clause(clauses, assignments):# Returns False if empty clause is found
+def empty_clause(clauses, assignments):
+	# Returns False if empty clause is found
+	# Empty clause: all the literals have been assigned in a way that makes the clause False
 	for clause in clauses:
 		asgn_vars = [i for i in clause if abs(i) in assignments.keys()]
 		if len(asgn_vars) == len(clause):
@@ -27,14 +35,8 @@ def empty_clause(clauses, assignments):# Returns False if empty clause is found
 				return False
 	return True
 
-#~ def find_unit_clauses(clauses):
-	#~ unit_clauses = []
-	#~ for clause in clauses:
-		#~ if len(clause) == 1:
-			#~ unit_clauses.append(clause)
-	#~ return unit_clauses
-
 def find_unit_clauses(clauses):
+	# The function is self explanatory. If length of a clause is one, we return
 	unit_dict = {}
 	for clause in clauses:
 		if len(clause) == 1:
@@ -44,9 +46,10 @@ def find_unit_clauses(clauses):
 		unit_clauses.append(unit)		
 	return unit_clauses
 
-def unit_propagate(old_clauses, assigned):# assigned is a length 1 dict -> var:value
+def literal_propagate(old_clauses, assigned):# assigned is a length 1 dict -> var:value
+	# This function propagates value of a literal into all other clauses. literal under propagation is specified in assignmed variable argument
+	# This function is used to reduce clause w.r.t. to a given literal
 	assigned_var = assigned.keys()[0]
-	#~ need_to_reduce = [clause for clause in clauses if (assigned_var in clause) or (-assigned_var in clause)]
 	reduced_clauses = []
 	clauses = deepcopy(old_clauses)
 	for clause in clauses:
@@ -66,17 +69,19 @@ def unit_propagate(old_clauses, assigned):# assigned is a length 1 dict -> var:v
 					break
 	return reduced_clauses
 
-def unit_test(clauses, assignments):
-	clauses = unit_propagate(clauses,assignments)
-	#~ print clauses
-	unit_clauses = find_unit_clauses(clauses)
-	for unit_clause in unit_clauses:
-		assigned = {abs(unit_clause[0]): (unit_clause[0]>0)}
-		clauses = unit_propagate(clauses,assigned)
-		#~ print clauses
+# This is a TEST function written for Program Testing
+#~ def unit_test(clauses, assignments):
+	#~ clauses = literal_propagate(clauses,assignments)
+	#~ # print clauses
+	#~ unit_clauses = find_unit_clauses(clauses)
+	#~ for unit_clause in unit_clauses:
+		#~ assigned = {abs(unit_clause[0]): (unit_clause[0]>0)}
+		#~ clauses = literal_propagate(clauses,assigned)
+		#~ # print clauses
 		
 		
 def find_pure_literals(clauses):# all_literal = -1 : Not a Pure Literal, 0 : Complemented Pure Literal, 1 : Pure Literal
+	# Finds pure literal in clauses.
 	all_literal ={};
 	for clause in clauses:
 		for literal in clause:
@@ -94,91 +99,104 @@ def find_pure_literals(clauses):# all_literal = -1 : Not a Pure Literal, 0 : Com
 			pure_literals.append(all_literal[key]*key)
 	return pure_literals;
 	
-def pure_literal_test(clauses):
-	pure_literals = find_pure_literals(clauses)
-	for pure_literal in pure_literals:
-		assigned = {abs(pure_literal): (pure_literal>0)}
-		clauses = unit_propagate(clauses,assigned)
+# This is a TEST function written for Program Testing
+#~ def pure_literal_test(clauses):
+	#~ pure_literals = find_pure_literals(clauses)
+	#~ for pure_literal in pure_literals:
+		#~ assigned = {abs(pure_literal): (pure_literal>0)}
+		#~ clauses = literal_propagate(clauses,assigned)
 		#~ print clauses
 					
-def dpll(old_clauses,old_assignments,i):
+def dpll(old_clauses,old_assignments,recursion_depth):
 	clauses = deepcopy(old_clauses)
 	assignments = deepcopy(old_assignments)
-	#~ print "** ", i
+	if (DEBUG_Mode):
+		print "\n# Recursion Depth ", recursion_depth  # where i is recusion depth
+		print "# Clauses",old_clauses
+		print "# Assignments",old_assignments
 	if(check_consistent(clauses, assignments)):
 		print 'Done', assignments
 		return True
 	elif not empty_clause(clauses, assignments):
-		#~ print 'Empty Clause',assignments
+		if (DEBUG_Mode):
+			print 'Empty Clause detected. Variable Assignments :',assignments
+			print 'Backtracking sequence initiated. Backtracking in 3...2...1...'
 		return False
 	unit_clauses = find_unit_clauses(clauses)
-	#~ print 'Unit-clauses : ',unit_clauses
+	if (DEBUG_Mode):
+		print 'Unit Clauses : ',unit_clauses
 	
 	for unit_clause in unit_clauses:
-		#~ print 'unit-clauses',unit_clauses
-		#~ print 'unit-clause',unit_clause
+		
 		asgn_var = abs(unit_clause)
 		asgn_val = unit_clause>0
 		assigned = {asgn_var: asgn_val}
 		if(asgn_var in assignments.keys()):
 			if(assignments[asgn_var] != asgn_val):
-				#~ print 'UNSAT, Conflicting Unit Clauses'
+				if (DEBUG_Mode):
+					print 'Conflicting Unit Clause has been Detected. Two unit clauses are contradictory:' 
+					print 'Backtracking sequence initiated. Backtracking in 3...2...1...'
 				return False
 		else:
 			assignments[asgn_var] = asgn_val
-		clauses = unit_propagate(clauses,assigned)
+		clauses = literal_propagate(clauses,assigned)
 		#~ for clause in clauses:
 			#~ if not clause: # Check for an Empty Clause, as Empty Clause will imply that No literals of the clause were able to make clause Satisfiable\True
 				#~ print 'Empty Clause, Unsat'
 				#~ return False
-	#~ print "Unit Propogated : ", clauses
+	if (DEBUG_Mode):
+		print "Unit Propagation complete. Reduced clauses: ", clauses
 	pure_literals = find_pure_literals(clauses)
 	for pure_literal in pure_literals:
 		assigned = {abs(pure_literal): (pure_literal>0)}
 		assignments[abs(pure_literal)] = (pure_literal>0)
-		clauses = unit_propagate(clauses,assigned)
-	#~ print "Pure Literal Propogated : ", clauses
+		clauses = literal_propagate(clauses,assigned)
+	if (DEBUG_Mode):
+		print "Pure Literals found:", pure_literals
+		print "Pure Literal elimination complete. Reduced clauses: ", clauses
 	#Choose New Literal
 	if(clauses == []):
-		print "ANS : ",assignments
+		print "\n\n************ SAT: ",assignments
 		return True
 	elif(clauses[0] == []):
 		return False
 	else:
 		I= clauses[0][0];
 	#~ print (clauses+[[I]])
-	if(dpll(clauses+[[I]],assignments,i+1)):
+	if(dpll(clauses+[[I]],assignments,recursion_depth+1)):
 		return True
-	elif(dpll(clauses+[[-I]],assignments,i+1)):
+	elif(dpll(clauses+[[-I]],assignments,recursion_depth+1)):
 		return True
 	else:
 		return False
 	
+def main(argv=None):
+	if argv is None: argv = sys.argv
+	if len(argv) != 2:
+		print "Usage: %s <cnf_file>" % argv[0]
+		return 1
+	try:
+  		filename = argv[1]
+		# Read the clauses in DIMACS conjunctive normal form from a cnf file
+		f = open(filename)
+		fLines = f.readlines()
+		l1 = fLines[0].split(' ')
 
-f = open('sudoku.cnf')
-fLines = f.readlines()
-l1 = fLines[0].split(' ')
+		num_vars = int(l1[2])
+		num_clauses = int(l1[3])
 
-num_vars = int(l1[2])
-num_clauses = int(l1[3])
+		all_clauses = []
+		for line in fLines[1:]:
+			all_clauses.append([int(i) for i in line.split(' ')[:-1]])
+		#~ print all_clauses
 
-all_clauses = []
-for line in fLines[1:]:
-	all_clauses.append([int(i) for i in line.split(' ')[:-1]])
-#~ print all_clauses
+		# Compute a solution for the SAT problem using our SAT solver
+		if not dpll(all_clauses,{},0):
+			print '\n\n************ UNSAT: The given clauses are not satisfiable by any variable assignment'
+	except IOError: # try as formula
+		print "Could not find file '%s'!!" % argv[1]
+	return 0	
 
-assignments = {2:True}
 
-#~ print check_consistent(all_clauses,assignments)
-#~ print empty_clause(all_clauses,assignments)
-#~ unit_clauses = find_unit_clauses(all_clauses)
-#~ if len(unit_clauses) == 0:
-	#~ print 'No Unit Clauses'
-#~ else:
-	#~ print 'Unit Clause(s)', unit_clauses
-
-#~ unit_propagate(all_clauses,assignments)
-#~ unit_test(all_clauses, assignments)
-#~ find_pure_literals(all_clauses);
-#~ pure_literal_test(all_clauses)
-dpll(all_clauses,{},0)
+if __name__ == '__main__':
+	sys.exit(main())
